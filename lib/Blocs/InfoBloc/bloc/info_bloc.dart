@@ -27,7 +27,8 @@ class InfoBloc extends Bloc<InfoEvent, InfoState> {
       PeriodEntry newEntry = new PeriodEntry(
           dateTime:
               new DateTime(event.time.year, event.time.month, event.time.day),
-          istPeriode: StaticVariables.isPeriod,stimmung: "");
+          istPeriode: StaticVariables.isPeriod,
+          stimmung: "");
 
       await doa.insertEntry(newEntry);
 
@@ -50,21 +51,26 @@ class InfoBloc extends Bloc<InfoEvent, InfoState> {
       yield InfoAusflussChanged(event.ausfluss);
     }
     if (event is PeriodeChanged) {
-      if(!StaticVariables.isPeriod){
-        EventsDOA events = EventsDOA();
-        events.insertEvent(new Events(event.time.add(new Duration(days:13)),["Eisprung"]));
-        events.insertEvent(new Events(event.time.add(new Duration(days:27)),["New Period"]));
-      }
 
-      StaticVariables.isPeriod = event.isPeriod;
-
-      yield InfoPeriodChanged();
+      yield InfoPeriodChanged(!event.isPeriod);
     }
     if (event is SaveEntry) {
       EntryDOA doa = EntryDOA();
 
+      if (event.changed != StaticVariables.isPeriod) {
+        if (!StaticVariables.isPeriod) {
+          EventsDOA events = EventsDOA();
+          events.insertEvent(new Events(
+              event.entry.dateTime.add(new Duration(days: 13)), ["Eisprung"]));
+          events.insertEvent(new Events(
+              event.entry.dateTime.add(new Duration(days: 27)),
+              ["New Period"]));
+        }
+        StaticVariables.isPeriod = !StaticVariables.isPeriod;
+      }
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setBool('isPeriod',StaticVariables.isPeriod);
+      prefs.setBool('isPeriod', StaticVariables.isPeriod);
 
       await doa.updateEntry(event.entry);
 

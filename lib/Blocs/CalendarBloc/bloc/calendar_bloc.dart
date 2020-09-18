@@ -26,7 +26,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       DateTime now = DateTime.now();
       DateTime dateTime = new DateTime(now.year, now.month, now.day);
       PeriodEntry entry = new PeriodEntry(
-          dateTime: dateTime, istPeriode: StaticVariables.isPeriod,stimmung: "",ausfluss: "",symptome: "Keine", temp: 0);
+          dateTime: dateTime, istPeriode: StaticVariables.isPeriod,stimmung: "",ausfluss: "",symptome: "Keine",notiz: "", temp: 0);
 
       await entries.insertEntry(entry);
 
@@ -61,6 +61,40 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       yield CalendarLoaded(
           list.where((element) => element.istPeriode == true).toList(),
           event,
+          list.firstWhere(
+              (element) => element.dateTime.compareTo(dateTime) == 0,
+              orElse: () => null));
+    }
+    if(event is PeriodeNachtragen){
+      EntryDOA entries = EntryDOA();
+      EventsDOA eventsDoa = EventsDOA();
+      DateTime now = DateTime.now();
+      DateTime dateTime = new DateTime(now.year, now.month, now.day);
+  
+      List<DateTime> listTime = [];   
+      DateTime start = event.start;
+
+      while(start.isBefore(event.end)) {     
+        listTime.add(start);     
+        start = start.add(Duration(days: 1));   
+      }   
+
+      listTime.forEach((element) async {
+        await entries.insertEntry(new PeriodEntry(dateTime: element, temp: 0, notiz: "",stimmung: "",ausfluss: "",symptome: "Keine",istPeriode: true));
+      });
+
+      await eventsDoa.insertEvent(new Events(
+              event.start.add(new Duration(days: 13)), ["Eisprung"]));
+      await eventsDoa.insertEvent(new Events(
+              event.end.add(new Duration(days: 27)),
+              ["New Period"]));
+
+      List<PeriodEntry> list = await entries.getEntries();
+      List<Events> events = await eventsDoa.getEvents();
+
+      yield CalendarLoaded(
+          list.where((element) => element.istPeriode == true).toList(),
+          events,
           list.firstWhere(
               (element) => element.dateTime.compareTo(dateTime) == 0,
               orElse: () => null));

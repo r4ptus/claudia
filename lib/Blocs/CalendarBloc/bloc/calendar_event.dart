@@ -26,3 +26,11 @@ class Reload extends CalendarEvent{
 @override
   List<Object> get props => [];
 }
+class PeriodeNachtragen extends CalendarEvent{
+  final DateTime start;
+  final DateTime end;
+
+  PeriodeNachtragen(this.start, this.end);
+  @override
+  List<Object> get props => [start,end];
+}

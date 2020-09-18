@@ -29,6 +29,7 @@ class _InfoViewState extends State<InfoView> {
     "assets/images/crying-face_1f622.png"
   ];
   List myActivities;
+  bool periodChanged;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _InfoViewState extends State<InfoView> {
     myActivities = [];
     ausflussValue = "";
     stimmungValue = "";
+    periodChanged = StaticVariables.isPeriod;
 
     var _infoBloc = BlocProvider.of<InfoBloc>(context);
     _infoBloc.add(LoadAddEntry(widget.time));
@@ -59,13 +61,13 @@ class _InfoViewState extends State<InfoView> {
                 entry.ausfluss = ausflussValue;
                 entry.stimmung = stimmungValue;
                 entry.symptome = myActivities.toString();
-                entry.istPeriode = StaticVariables.isPeriod;
+                entry.istPeriode = periodChanged;
                 entry.notiz = _textEditingController.text;
                 entry.temp =
                     double.tryParse(_textEditingControllerTemp.text) ?? 0;
 
                 var _infoBloc = BlocProvider.of<InfoBloc>(context);
-                _infoBloc.add(SaveEntry(entry));
+                _infoBloc.add(SaveEntry(entry,periodChanged));
               },
               child: Text(
                 "save",
@@ -103,7 +105,10 @@ class _InfoViewState extends State<InfoView> {
         stimmungValue = state.stimmung;
         return body();
       }
-      if (state is InfoPeriodChanged) return body();
+      if (state is InfoPeriodChanged) {
+        periodChanged = state.periodChanged;
+        return body();
+      }
 
       return body();
     });
@@ -121,16 +126,16 @@ class _InfoViewState extends State<InfoView> {
             padding: EdgeInsets.all(8),
             child: Center(
               child: RaisedButton(
-                color: StaticVariables.isPeriod
+                color: periodChanged
                     ? Colors.red[300]
                     : Colors.green[300],
-                child: StaticVariables.isPeriod
+                child: periodChanged
                     ? Text("Periodenende")
                     : Text("Periodenstart"),
                 onPressed: () {
                   var _infoBloc = BlocProvider.of<InfoBloc>(context);
                   _infoBloc.add(PeriodeChanged(
-                      !StaticVariables.isPeriod, entry.dateTime));
+                      periodChanged, entry.dateTime));
                 },
               ),
             )),

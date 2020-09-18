@@ -45,9 +45,10 @@ class PeriodeChanged extends InfoEvent{
 }
 class SaveEntry extends InfoEvent{
   final PeriodEntry entry;
+  final bool changed;
 
-  SaveEntry(this.entry);
+  SaveEntry(this.entry, this.changed);
   @override
   // TODO: implement props
-  List<Object> get props => [entry];
+  List<Object> get props => [entry,changed];
 }

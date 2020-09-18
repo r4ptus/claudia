@@ -3,8 +3,10 @@ import 'package:claudia/Models/periodEntry.dart';
 import 'package:claudia/Views/chart_view.dart';
 import 'package:claudia/Views/info_view.dart';
 import 'package:claudia/sizeConfig.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -23,6 +25,9 @@ class _CalendarViewState extends State<CalendarView> {
   DateTime _selectedDay = DateTime.now();
   Map<DateTime, List> _holidays = {};
   Map<DateTime, List> _events = {};
+  final format = DateFormat("dd.MM.yyyy");
+  DateTime start;
+  DateTime end;
 
   @override
   void initState() {
@@ -57,6 +62,7 @@ class _CalendarViewState extends State<CalendarView> {
         ],
       ),
       body: blocBuilder(),
+      floatingActionButton: fab(),
       backgroundColor: Colors.pink[50],
     );
   }
@@ -172,9 +178,117 @@ class _CalendarViewState extends State<CalendarView> {
     _calendarBloc.add(DayChanged(dateTime));
   }
 
+  Widget fab() {
+    return SpeedDial(
+      animatedIcon: AnimatedIcons.menu_close,
+      children: [
+        SpeedDialChild(
+          label: "Neuer Eintrag",
+          child: Icon(Icons.add),
+          onTap: () {
+            Navigator.of(context)
+                .push(new MaterialPageRoute(
+                    builder: (context) => InfoView(
+                          title: DateFormat("dd.MM.yyyy").format(_selectedDay),
+                          time: _selectedDay,
+                        )))
+                .then((value) {
+              var _calendarBloc = BlocProvider.of<CalendarBloc>(context);
+              _calendarBloc.add(Reload());
+            });
+          },
+        ),
+        SpeedDialChild(
+          label: "Periode Nachtragen",
+          child: Icon(Icons.date_range),
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text("Periode Nachtragen"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                      padding: EdgeInsets.all(8),
+                      child: DateTimeField(
+                        format: format,
+                        initialValue:
+                            DateTime.now().subtract(Duration(days: 1)),
+                        decoration: InputDecoration(
+                            labelText: "Start",
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder()),
+                        onChanged: (dt) {
+                          setState(() {
+                            start = dt;
+                          });
+                        },
+                        onShowPicker: (context, currentValue) async {
+                          final date = await showDatePicker(
+                              context: context,
+                              firstDate: DateTime(1900),
+                              initialDate: currentValue ?? DateTime.now(),
+                              lastDate:
+                                  DateTime.now().subtract(Duration(days: 1)));
+                          if (date != null) {
+                            return date;
+                          } else {
+                            return currentValue;
+                          }
+                        },
+                      )),
+                  Padding(
+                      padding: EdgeInsets.all(8),
+                      child: DateTimeField(
+                        format: format,
+                        initialValue: DateTime.now(),
+                        decoration: InputDecoration(
+                            labelText: "Ende",
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder()),
+                        onChanged: (dt) {
+                          setState(() {
+                            end = dt;
+                          });
+                        },
+                        onShowPicker: (context, currentValue) async {
+                          final date = await showDatePicker(
+                              context: context,
+                              firstDate: DateTime(1900),
+                              initialDate: currentValue ?? DateTime.now(),
+                              lastDate: DateTime.now());
+                          if (date != null) {
+                            return date;
+                          } else {
+                            return currentValue;
+                          }
+                        },
+                      ))
+                ],
+              ),
+              actions: [
+                OutlineButton(
+                    child: Text("cancel"),
+                    onPressed: () => Navigator.of(context).pop()),
+                OutlineButton(
+                    child: Text("save"),
+                    onPressed: () {
+                      var _calendarBloc =
+                          BlocProvider.of<CalendarBloc>(context);
+                      _calendarBloc.add(PeriodeNachtragen(start, end));
+                      Navigator.of(context).pop();
+                    })
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
   Widget infoField(PeriodEntry entry) {
     return Container(
-        height: 35 * SizeConfig.blockSizeVertical,
+        height: 37.5 * SizeConfig.blockSizeVertical,
         width: 95 * SizeConfig.blockSizeHorizontal,
         child: Card(
           child: isPeriod(entry),
@@ -187,14 +301,16 @@ class _CalendarViewState extends State<CalendarView> {
         Padding(
             padding: EdgeInsets.all(8),
             child: Text(DateFormat("dd.MM.yyyy").format(entry.dateTime))),
-        Padding(
-            padding: EdgeInsets.all(8),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Temperatur:"),
-                  Text("${entry?.temp ?? 0}°C")
-                ])),
+        Container(
+            color: Colors.pink[100],
+            child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Temperatur:"),
+                      Text("${entry?.temp ?? 0}°C")
+                    ]))),
         Padding(
             padding: EdgeInsets.all(8),
             child: Row(
@@ -210,21 +326,44 @@ class _CalendarViewState extends State<CalendarView> {
                           errorBuilder: (context, object, trace) => Text(""),
                         )
                 ])),
+        Container(
+            color: Colors.pink[100],
+            child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Symptome:"),
+                      Expanded(
+                          child: Text(
+                        "${entry?.symptome ?? ""}",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      ))
+                    ]))),
         Padding(
             padding: EdgeInsets.all(8),
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text("Symptome:"), Text("${entry?.symptome}")])),
-        Padding(
-            padding: EdgeInsets.all(8),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text("Ausfluss:"), Text("${entry?.ausfluss}")])),
-        Padding(
-            padding: EdgeInsets.all(8),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text("Notiz:"), Text(entry?.notiz)])),
+                children: [
+                  Text("Ausfluss:"),
+                  Text("${entry?.ausfluss ?? ""}")
+                ])),
+        Container(
+            color: Colors.pink[100],
+            child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Notiz:"),
+                      Expanded(
+                          child: Text(entry?.notiz ?? "",
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end))
+                    ]))),
       ],
     );
   }

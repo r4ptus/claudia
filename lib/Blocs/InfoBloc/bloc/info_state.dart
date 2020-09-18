@@ -45,9 +45,12 @@ class InfoAusflussChanged extends InfoState{
   List<Object> get props => [ausfluss];
 }
 class InfoPeriodChanged extends InfoState{
+  final bool periodChanged;
+
+  InfoPeriodChanged(this.periodChanged);
   @override
   // TODO: implement props
-  List<Object> get props => [];
+  List<Object> get props => [periodChanged];
 }
 class InfoPeriodSaved extends InfoState{
   @override
