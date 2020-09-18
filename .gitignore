@@ -29,6 +29,7 @@
 .packages
 .pub-cache/
 .pub/
+.properties
 /build/
 
 # Web related
