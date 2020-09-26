@@ -14,7 +14,7 @@ part 'info_event.dart';
 part 'info_state.dart';
 
 class InfoBloc extends Bloc<InfoEvent, InfoState> {
-  InfoBloc() : super(InfoInitial());
+  InfoBloc() : super(InfoLoading());
 
   @override
   Stream<InfoState> mapEventToState(

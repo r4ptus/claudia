@@ -8,6 +8,11 @@ class InfoInitial extends InfoState {
   // TODO: implement props
   List<Object> get props => [];
 }
+class InfoLoading extends InfoState {
+  @override
+  // TODO: implement props
+  List<Object> get props => [];
+}
 class InfoLoaded extends InfoState{
   final PeriodEntry entry;
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:claudia/Blocs/InfoBloc/bloc/info_bloc.dart';
@@ -40,7 +41,7 @@ class _InfoViewState extends State<InfoView> {
 
     _textEditingController.text = "";
     _textEditingControllerTemp.text = "";
-    myActivities = [];
+    //myActivities = ["Krämpfe"];
     ausflussValue = "";
     stimmungValue = "";
     periodChanged = StaticVariables.isPeriod;
@@ -81,14 +82,15 @@ class _InfoViewState extends State<InfoView> {
   }
 
   Widget blocBuilder() {
-    return BlocConsumer<InfoBloc, InfoState>(listener: (context, state) {
+    return BlocConsumer<InfoBloc, InfoState>(
+    listener: (context, state) {
       if (state is InfoPeriodSaved) Navigator.of(context).pop();
     }, builder: (context, state) {
       if (state is InfoLoaded) {
         entry = state.entry;
         _textEditingController.text = entry.notiz?.toString() ?? "";
         _textEditingControllerTemp.text = entry.temp?.toString() ?? "";
-
+        myActivities = entry.symptome.replaceFirst("[", "").replaceFirst("]", "").split(", ");
         ausflussValue = entry.ausfluss ?? "";
         stimmungValue = entry.stimmung ?? "";
         return body();
@@ -109,8 +111,9 @@ class _InfoViewState extends State<InfoView> {
         periodChanged = state.periodChanged;
         return body();
       }
-
-      return body();
+      if(state is InfoLoading){
+        return CircularProgressIndicator();
+      }
     });
   }
 
