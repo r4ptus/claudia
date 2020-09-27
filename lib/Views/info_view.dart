@@ -210,8 +210,12 @@ class _InfoViewState extends State<InfoView> {
       titleText: "Symptome",
       dataSource: [
         {
+          "display":"",
+          "value":"",
+        },
+        {
           "display": "Keine",
-          "value": "",
+          "value": "Keine",
         },
         {
           "display": "Krämpfe",
