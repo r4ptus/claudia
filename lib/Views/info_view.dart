@@ -90,7 +90,7 @@ class _InfoViewState extends State<InfoView> {
         entry = state.entry;
         _textEditingController.text = entry.notiz?.toString() ?? "";
         _textEditingControllerTemp.text = entry.temp?.toString() ?? "";
-        myActivities = entry.symptome.replaceFirst("[", "").replaceFirst("]", "").split(", ");
+        myActivities = entry?.symptome?.replaceFirst("[", "")?.replaceFirst("]", "")?.split(", ") ?? [];
         ausflussValue = entry.ausfluss ?? "";
         stimmungValue = entry.stimmung ?? "";
         return body();
