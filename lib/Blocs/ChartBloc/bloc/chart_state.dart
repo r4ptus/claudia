@@ -15,9 +15,10 @@ class ChartLoading extends ChartState{
 }
 class ChartLoaded extends ChartState{
   final List<PeriodEntry> list;
+  final DateTime dateTime;
 
-  ChartLoaded(this.list);
+  ChartLoaded(this.list, this.dateTime);
   @override
   // TODO: implement props
-  List<Object> get props => [list];
+  List<Object> get props => [list,dateTime];
 }

@@ -1,8 +1,10 @@
 import 'package:claudia/Blocs/CalendarBloc/bloc/calendar_bloc.dart';
 import 'package:claudia/Blocs/ChartBloc/bloc/chart_bloc.dart';
 import 'package:claudia/Blocs/InfoBloc/bloc/info_bloc.dart';
+import 'package:claudia/Blocs/ListBloc/list_bloc.dart';
 import 'package:claudia/Models/staticVariables.dart';
 import 'package:claudia/Views/calendar_view.dart';
+import 'package:claudia/Views/home_view.dart';
 import 'package:claudia/sizeConfig.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,18 +22,29 @@ class MyApp extends StatelessWidget {
     getBools();
     return MultiBlocProvider(
         providers: [
-          BlocProvider<CalendarBloc>(create: (context) => CalendarBloc()),
-          BlocProvider<InfoBloc>(create: (context) => InfoBloc()),
-          BlocProvider<ChartBloc>(create: (context) => ChartBloc())
+          BlocProvider<CalendarBloc>(
+            create: (context) => CalendarBloc(),
+          ),
+          BlocProvider<InfoBloc>(
+            create: (context) => InfoBloc(),
+          ),
+          BlocProvider<ChartBloc>(
+            create: (context) => ChartBloc(),
+          ),
+          BlocProvider<ListBloc>(
+            create: (context) => ListBloc(),
+          ),
         ],
         child: MaterialApp(
-          theme: ThemeData(primaryColor: Colors.pink,accentColor: Colors.pink[300]),
-          title: 'Claudia',
-          home: CalendarView(
-            title: "Claudia",
+          theme: ThemeData(
+            primaryColor: Colors.pink,
+            accentColor: Colors.pink[300],
           ),
+          title: 'Claudia',
+          home: HomeView(),
         ));
   }
+
   getBools() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     StaticVariables.isPeriod = prefs.getBool('isPeriod') ?? false;

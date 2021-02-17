@@ -24,7 +24,7 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
 
       yield ChartLoaded(list.where((element) =>
           element.dateTime.year == event.time.year &&
-          element.dateTime.month == event.time.month).toList());
+          element.dateTime.month == event.time.month).toList(),event.time);
     }
   }
 }

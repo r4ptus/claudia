@@ -12,9 +12,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarView extends StatefulWidget {
-  final String title;
-
-  CalendarView({Key key, this.title}) : super(key: key);
+  CalendarView({Key key}) : super(key: key);
 
   @override
   _CalendarViewState createState() => _CalendarViewState();
@@ -47,19 +45,8 @@ class _CalendarViewState extends State<CalendarView> {
     SizeConfig().init(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Claudia"),
         centerTitle: true,
-        actions: [
-          IconButton(
-              icon: Icon(
-                MdiIcons.finance,
-                color: Colors.white,
-              ),
-              onPressed: () => Navigator.of(context).push(new MaterialPageRoute(
-                  builder: (context) => ChartView(
-                        time: _selectedDay,
-                      ))))
-        ],
       ),
       body: blocBuilder(),
       floatingActionButton: fab(),
@@ -187,14 +174,16 @@ class _CalendarViewState extends State<CalendarView> {
           child: Icon(Icons.add),
           onTap: () {
             Navigator.of(context)
-                .push(new MaterialPageRoute(
-                    builder: (context) => InfoView(
-                          title: DateFormat("dd.MM.yyyy").format(_selectedDay),
-                          time: _selectedDay,
-                        )))
+                .push(
+              new MaterialPageRoute(
+                builder: (context) => InfoView(
+                  title: DateFormat("dd.MM.yyyy").format(_selectedDay),
+                  time: _selectedDay,
+                ),
+              ),
+            )
                 .then((value) {
-              var _calendarBloc = BlocProvider.of<CalendarBloc>(context);
-              _calendarBloc.add(Reload());
+              BlocProvider.of<CalendarBloc>(context).add(Reload());
             });
           },
         ),
@@ -267,15 +256,14 @@ class _CalendarViewState extends State<CalendarView> {
                 ],
               ),
               actions: [
-                OutlineButton(
+                OutlinedButton(
                     child: Text("cancel"),
                     onPressed: () => Navigator.of(context).pop()),
-                OutlineButton(
+                OutlinedButton(
                     child: Text("save"),
                     onPressed: () {
-                      var _calendarBloc =
-                          BlocProvider.of<CalendarBloc>(context);
-                      _calendarBloc.add(PeriodeNachtragen(start, end));
+                      BlocProvider.of<CalendarBloc>(context)
+                          .add(PeriodeNachtragen(start, end));
                       Navigator.of(context).pop();
                     })
               ],

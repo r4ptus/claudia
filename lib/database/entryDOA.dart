@@ -20,7 +20,7 @@ class EntryDOA {
     print("Updated $entry");
   }
   Future delete(PeriodEntry entry) async{
-    final finder = Finder(filter: Filter.byKey(entry.dateTime));
+    final finder = Finder(filter: Filter.byKey(entry.dateTime.toString()));
     await _codeFolder.delete(await _db, finder: finder);
   }
   Future deleteAll() async{

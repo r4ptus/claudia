@@ -86,7 +86,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       await eventsDoa.insertEvent(new Events(
               event.start.add(new Duration(days: 13)), ["Eisprung"]));
       await eventsDoa.insertEvent(new Events(
-              event.end.add(new Duration(days: 27)),
+              event.start.add(new Duration(days: 27)),
               ["New Period"]));
 
       List<PeriodEntry> list = await entries.getEntries();

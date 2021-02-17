@@ -57,23 +57,24 @@ class _InfoViewState extends State<InfoView> {
         title: Text(widget.title),
         centerTitle: true,
         actions: [
-          FlatButton(
-              onPressed: () {
-                entry.ausfluss = ausflussValue;
-                entry.stimmung = stimmungValue;
-                entry.symptome = myActivities.toString();
-                entry.istPeriode = periodChanged;
-                entry.notiz = _textEditingController.text;
-                entry.temp =
-                    double.tryParse(_textEditingControllerTemp.text) ?? 0;
+          TextButton(
+            onPressed: () {
+              entry.ausfluss = ausflussValue;
+              entry.stimmung = stimmungValue;
+              entry.symptome = myActivities.toString();
+              entry.istPeriode = periodChanged;
+              entry.notiz = _textEditingController.text;
+              entry.temp =
+                  double.tryParse(_textEditingControllerTemp.text) ?? 0;
 
-                var _infoBloc = BlocProvider.of<InfoBloc>(context);
-                _infoBloc.add(SaveEntry(entry,periodChanged));
-              },
-              child: Text(
-                "save",
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ))
+              BlocProvider.of<InfoBloc>(context)
+                  .add(SaveEntry(entry, periodChanged));
+            },
+            child: Text(
+              "save",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          ),
         ],
       ),
       body: blocBuilder(),
@@ -82,15 +83,18 @@ class _InfoViewState extends State<InfoView> {
   }
 
   Widget blocBuilder() {
-    return BlocConsumer<InfoBloc, InfoState>(
-    listener: (context, state) {
+    return BlocConsumer<InfoBloc, InfoState>(listener: (context, state) {
       if (state is InfoPeriodSaved) Navigator.of(context).pop();
     }, builder: (context, state) {
       if (state is InfoLoaded) {
         entry = state.entry;
         _textEditingController.text = entry.notiz?.toString() ?? "";
         _textEditingControllerTemp.text = entry.temp?.toString() ?? "";
-        myActivities = entry?.symptome?.replaceFirst("[", "")?.replaceFirst("]", "")?.split(", ") ?? [];
+        myActivities = entry?.symptome
+                ?.replaceFirst("[", "")
+                ?.replaceFirst("]", "")
+                ?.split(", ") ??
+            [];
         ausflussValue = entry.ausfluss ?? "";
         stimmungValue = entry.stimmung ?? "";
         return body();
@@ -111,37 +115,48 @@ class _InfoViewState extends State<InfoView> {
         periodChanged = state.periodChanged;
         return body();
       }
-      if(state is InfoLoading){
+      if (state is InfoLoading) {
         return CircularProgressIndicator();
       }
+      return Container(
+        color: Colors.pink[50],
+      );
     });
   }
 
   Widget body() {
     return Container(
-        child: SingleChildScrollView(
-      child: Column(children: widgets()),
-    ));
+      child: SingleChildScrollView(
+        child: Column(
+          children: widgets(),
+        ),
+      ),
+    );
   }
 
   List<Widget> widgets() => [
-        Padding(
+        if (widget.time.day == DateTime.now().day &&
+            widget.time.month == DateTime.now().month &&
+            widget.time.year == DateTime.now().year)
+          Padding(
             padding: EdgeInsets.all(8),
             child: Center(
-              child: RaisedButton(
-                color: periodChanged
-                    ? Colors.red[300]
-                    : Colors.green[300],
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                      (states) =>
+                          periodChanged ? Colors.red[300] : Colors.green[300]),
+                ),
                 child: periodChanged
                     ? Text("Periodenende")
                     : Text("Periodenstart"),
                 onPressed: () {
-                  var _infoBloc = BlocProvider.of<InfoBloc>(context);
-                  _infoBloc.add(PeriodeChanged(
-                      periodChanged, entry.dateTime));
+                  BlocProvider.of<InfoBloc>(context)
+                      .add(PeriodeChanged(periodChanged, entry.dateTime));
                 },
               ),
-            )),
+            ),
+          ),
         Padding(
             padding: EdgeInsets.all(8),
             child: TextFormField(
@@ -159,49 +174,60 @@ class _InfoViewState extends State<InfoView> {
           crossAxisCount: 4,
           shrinkWrap: true,
           children: List.generate(
-              4,
-              (index) => Container(
-                  color:
-                      stimmungValue == moods[index] ? Colors.red : Colors.pink[50],
-                  child: GestureDetector(
-                      onTap: () {
-                        var _infoBloc = BlocProvider.of<InfoBloc>(context);
-                        _infoBloc.add(StimmungChanged(moods[index]));
-                      },
-                      child: Image.asset(moods[index])))),
+            4,
+            (index) => Container(
+              color:
+                  stimmungValue == moods[index] ? Colors.red : Colors.pink[50],
+              child: GestureDetector(
+                onTap: () {
+                  BlocProvider.of<InfoBloc>(context).add(
+                    StimmungChanged(moods[index]),
+                  );
+                },
+                child: Image.asset(moods[index]),
+              ),
+            ),
+          ),
         ),
-        Padding(padding: EdgeInsets.all(8), child: multiSelect()),
         Padding(
-            padding: EdgeInsets.all(8),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Ausfluss"),
-                  DropdownButton(
-                      value: ausflussValue,
-                      items: <String>[
-                        '',
-                        'Schmierblutung',
-                        'Klebrig',
-                        'Eiweißartig',
-                        'Wässrig'
-                      ].map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (String newValue) {
-                        var _infoBloc = BlocProvider.of<InfoBloc>(context);
-                        _infoBloc.add(AusflussChanged(newValue));
-                      })
-                ])),
+          padding: EdgeInsets.all(8),
+          child: multiSelect(),
+        ),
         Padding(
-            padding: EdgeInsets.all(8),
-            child: TextFormField(
-              controller: _textEditingController,
-              decoration: InputDecoration(labelText: "Notiz"),
-            )),
+          padding: EdgeInsets.all(8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Ausfluss"),
+              DropdownButton(
+                value: ausflussValue,
+                items: <String>[
+                  '',
+                  'Schmierblutung',
+                  'Klebrig',
+                  'Eiweißartig',
+                  'Wässrig'
+                ].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String newValue) {
+                  var _infoBloc = BlocProvider.of<InfoBloc>(context);
+                  _infoBloc.add(AusflussChanged(newValue));
+                },
+              )
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(8),
+          child: TextFormField(
+            controller: _textEditingController,
+            decoration: InputDecoration(labelText: "Notiz"),
+          ),
+        ),
       ];
   Widget multiSelect() {
     return MultiSelectFormField(
@@ -210,8 +236,8 @@ class _InfoViewState extends State<InfoView> {
       titleText: "Symptome",
       dataSource: [
         {
-          "display":"",
-          "value":"",
+          "display": "",
+          "value": "",
         },
         {
           "display": "Keine",
@@ -260,8 +286,7 @@ class _InfoViewState extends State<InfoView> {
       cancelButtonLabel: 'CANCEL',
       initialValue: myActivities,
       onSaved: (value) {
-        var _infoBloc = BlocProvider.of<InfoBloc>(context);
-        _infoBloc.add(SymptomeChanged(value));
+        BlocProvider.of<InfoBloc>(context).add(SymptomeChanged(value));
       },
     );
   }

@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
 class ChartView extends StatefulWidget {
-  final DateTime time;
-  ChartView({Key key, this.time}) : super(key: key);
+  //final DateTime time;
+  ChartView({Key key}) : super(key: key);
 
   @override
   _ChartViewState createState() => _ChartViewState();
@@ -17,37 +17,77 @@ class ChartView extends StatefulWidget {
 class _ChartViewState extends State<ChartView> {
   List<charts.Series<Periodendauer, DateTime>> seriesList;
   static List<Periodendauer> streaks = [];
+  DateTime dateTime;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    var _infoBloc = BlocProvider.of<ChartBloc>(context);
-    _infoBloc.add(LoadChart(widget.time));
+    BlocProvider.of<ChartBloc>(context).add(LoadChart(DateTime.now()));
+    dateTime = DateTime.now();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(DateFormat("MM.yyyy").format(widget.time)),
-        centerTitle: true,
-      ),
-      body: blocBuilder(),
-      backgroundColor: Colors.pink[50],
-    );
-  }
-
-  Widget blocBuilder() {
     return BlocBuilder<ChartBloc, ChartState>(
       builder: (context, state) {
         if (state is ChartLoaded) {
+          dateTime = state.dateTime;
           streaks = getPerioden(state.list);
           seriesList = _createSampleData(clone(state.list));
+          
 
-          return body();
+          return _scaffold();
         }
-        return CircularProgressIndicator();
+        return Scaffold(
+          appBar: AppBar(),
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       },
+    );
+  }
+
+  Widget _scaffold() {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(DateFormat("MM.yyyy").format(dateTime)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_left),
+          onPressed: () {
+            if (dateTime.month - 1 <= 0)
+              BlocProvider.of<ChartBloc>(context).add(LoadChart(DateTime(
+                dateTime.year - 1,
+                12,
+              )));
+            else
+              BlocProvider.of<ChartBloc>(context).add(LoadChart(DateTime(
+                dateTime.year,
+                dateTime.month - 1,
+              )));
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.arrow_right),
+            onPressed: () {
+              if (dateTime.month + 1 > 12)
+                BlocProvider.of<ChartBloc>(context).add(LoadChart(DateTime(
+                  dateTime.year + 1,
+                  1,
+                )));
+              else
+                BlocProvider.of<ChartBloc>(context).add(LoadChart(DateTime(
+                  dateTime.year,
+                  dateTime.month + 1,
+                )));
+            },
+          ),
+        ],
+      ),
+      body: body(),
+      backgroundColor: Colors.pink[50],
     );
   }
 
@@ -60,12 +100,13 @@ class _ChartViewState extends State<ChartView> {
     return new charts.TimeSeriesChart(
       seriesList,
       animate: true,
-      primaryMeasureAxis: new charts.NumericAxisSpec(tickProviderSpec: new charts.BasicNumericTickProviderSpec(zeroBound: false)),
+      primaryMeasureAxis: new charts.NumericAxisSpec(
+          tickProviderSpec:
+              new charts.BasicNumericTickProviderSpec(zeroBound: false)),
       behaviors: [
         charts.ChartTitle("°C",
             behaviorPosition: charts.BehaviorPosition.start,
-            titleOutsideJustification:
-                charts.OutsideJustification.endDrawArea,
+            titleOutsideJustification: charts.OutsideJustification.endDrawArea,
             titleDirection: charts.ChartTitleDirection.horizontal),
       ],
       // Custom renderer configuration for the point series.
@@ -119,6 +160,9 @@ class _ChartViewState extends State<ChartView> {
 
   List<Periodendauer> clone(List<PeriodEntry> list) {
     List<Periodendauer> temp = [];
+    for(int i = 1; i<=DateTime(dateTime.year,dateTime.month + 1,0).day;i++){
+      temp.add(new Periodendauer(initial: new DateTime(dateTime.year,dateTime.month,i),temp: 0));
+    }
     list.forEach((element) {
       temp.add(
           new Periodendauer(initial: element.dateTime, temp: element.temp));
